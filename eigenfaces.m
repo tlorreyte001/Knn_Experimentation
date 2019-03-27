@@ -30,60 +30,60 @@ Nc = length(cls_trn);
 % Number of training images in each class
 size_cls_trn = [bd(2:Nc)-bd(1:Nc-1);N-bd(Nc)+1]; 
 % Display the database
-% F = zeros(192*Nc,168*max(size_cls_trn));
-% for i=1:Nc
+%F = zeros(192*Nc,168*max(size_cls_trn));
+%for i=1:Nc
 %    for j=1:size_cls_trn(i)
 %          pos = sum(size_cls_trn(1:i-1))+j;
 %          F(192*(i-1)+1:192*i,168*(j-1)+1:168*j) = reshape(data_trn(:,pos),[192,168]);
 %    end
-% end
-% figure;
-% imagesc(F);
-% colormap(gray);
-% axis off;
+%end
+%figure;
+%imagesc(F);
+%colormap(gray);
+%axis off;
 
 %% ACP
-%Question 1 : Calcul des vecteurs propres
-
-X=data_trn;
-Xmoy=sum(X,2)/N;
+%Calcul des vecteurs propres de R
+xbarre=zeros(P,1);
 for i=1:N
-    X(:,i)=(X(:,i)-Xmoy)/sqrt(N);
+    xbarre=xbarre+data_trn(:,i);
+end
+xbarre=xbarre./N;
+X=data_trn;
+for i=1:N
+    X(:,i)=(1/sqrt(N)).*(X(:,i)-xbarre);
 end
 [V,lambda]=eig(X'*X);
-U=X*V*(V'*X'*X*V)^-(1/2);
+U=X*V*(lambda)^(-0.5);
+% U=X*V(V'*X'*X*V)^(-1/2);
 
-%Question 2 :
-
+%Représentation des n eigenfaces
 % figure;
 % for i=1:N
-%     F=reshape(U(:,i),[192,168]);
+%     F=reshape(real(U(:,i)),[192,168]);
+%     subplot(5,6,i);
 %     imagesc(F);
 %     axis off;
-%     subplot(6,10,i);
 % end
 % colormap(gray);
 
-%Question 3 : 
-
+%Image reconstruite
+% personne=1;
 % figure;
-% personne=19;
 % Xpro=zeros(P,N);
 % for l=1:N-1
-%     subplot(6,10,l)
+%     subplot(6,10,l);
 %     Xpro(:,l)=U(:,N).'*(X(:,personne))*U(:,N);
 %     for i=2:l
 %         Xpro(:,l)=Xpro(:,l)+U(:,N-i).'*(X(:,personne))*U(:,N-i);
 %     end
-%     %F=reshape(Xpro,[192,168]); %Sans la moyenne 
-%     F=reshape(Xpro(:,l)+Xmoy/sqrt(N),[192,168]);
+%     F=reshape(Xpro(:,l)+xbarre/sqrt(N),[192,168]);
 %     imagesc(F);
 %     colormap(gray);
 %     axis off;
 % end
 
-%Question 4 : 
-
+%Ratio de reconstruction
 % figure;
 ratio=[];
 ratio(1)=lambda(N,N)/sum(diag(lambda));
@@ -97,51 +97,12 @@ while ratio(l)<0.90
     l=l+1;
 end
 
-%% CLASSIFICATION
+%% Classification
 
-%Question 1
-%Omega des img de training
-W=[];
-for i=1:N
-    wtmp=[];
-    for j=1:l
-        wtmp=[wtmp, X(:,i)'*U(:,N-j+1)];
-    end
-    W=[W;wtmp];
-end
+k=15;
+lb_test=k_NN(k, './database/test6/', X, l, U, N, P)
+lb=[ones(1,12), 2*ones(1,12) ,3*ones(1,12) ,4*ones(1,12),5*ones(1,12), 6*ones(1,12)];
 
-k=6;
-% lb_test=k_NN(k, './database/test1/', W, l, U, N)
-% module_Cj=7
-% lb=[ones(1,7), 2*ones(1,7) ,3*ones(1,7) ,4*ones(1,7),5*ones(1,7), 6*ones(1,7)];
-% [C,err_rate]=confmat(lb',lb_test');
-% C
-
-%% Classification Gaussienne
-
-%Calcul des moyennes intra-classe à partir des données d'apprentissage
-MU=[];
-for i=1:6
-    MU=[MU; 1/10*sum(W((i-1)*10+1:i*10,:))];
-    
-end
-
-%Calcul de la covariance
-SIGMA=0;
-for i=1:6
-    for j=1:10
-        a= W(j+(10*(i-1)),:)-MU(i,:);
-        SIGMA=SIGMA+(a*a');
-    end    
-end
-SIGMA=(1/N)*SIGMA; %Bizarre
-
-%Question 1: %TODO
-omega=[];
-for i=1:30
-    fiy=sqrt(1/2*pi*det(SIGMA))*exp(-1/2*(data_trn(
-    omega[
-    
-
-
-       
+[C,err_rate]=confmat(lb',lb_test');
+C
+err_rate
