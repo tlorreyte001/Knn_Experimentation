@@ -99,10 +99,39 @@ end
 
 %% Classification
 
-k=15;
-lb_test=k_NN(k, './database/test6/', X, l, U, N, P)
-lb=[ones(1,12), 2*ones(1,12) ,3*ones(1,12) ,4*ones(1,12),5*ones(1,12), 6*ones(1,12)];
+% k=15;
+% lb_test=k_NN(k, './database/test6/', X, l, U, N, P)
+% lb=[ones(1,12), 2*ones(1,12) ,3*ones(1,12) ,4*ones(1,12),5*ones(1,12), 6*ones(1,12)];
+% 
+% [C,err_rate]=confmat(lb',lb_test');
+% C
+% err_rate
 
-[C,err_rate]=confmat(lb',lb_test');
-C
-err_rate
+%% Classification Gaussienne
+
+%Calcul des moyennes intra-classe à partir des données d'apprentissage
+MU=[];
+Cj=size_cls_trn(1);
+nbre_classes=size(size_cls_trn);
+for j=1:nbre_classes
+    o=zeros(1,l);
+    for i=1:Cj
+        o=o+omega(X, U, i+((j-1)*10), l, N);
+    end
+    MU=[MU;o];
+end
+MU=(1/Cj).*MU;
+
+%Calcul de la covariance
+SIGMA=zeros(l,l);
+for j=1:nbre_classes
+    for i=1:Cj
+        SIGMA=SIGMA+(omega(X, U, i+((j-1)*10), l, N))'*(omega(X, U, i+((j-1)*10), l, N));
+    end
+end
+
+%Question 1
+
+
+
+    
